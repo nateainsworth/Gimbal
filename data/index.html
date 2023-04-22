@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gimbal Web Server</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+  <h1>Gimbal Web Server</h1>
+  <p>Horizontal Servo<strong> %STATE%</strong></p>
+  <input type="range" min="0" max="180" class="slider" id="horizontalSlider" onchange="servo(this.value)"/>
+  <script>
+    document.getElementById("horizontalSlider").value = STATE;
+    console.log("state is: " + STATE);
+
+    $.ajaxSetup({timeout:1000});
+    function servo(pos) {
+      $.get("/horizontal?value=" + pos + "&");
+      {Connection: close};
+    }
+
+  </script>
+</body>
+</html>

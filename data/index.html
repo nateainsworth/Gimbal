@@ -7,20 +7,93 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
-<body>
+<body onload="onBodyLoad()">
   <h1>Gimbal Web Server</h1>
-  <p>Horizontal Servo<strong> %STATE%</strong></p>
-  <input type="range" min="0" max="180" class="slider" id="horizontalSlider" onchange="servo(this.value)"/>
-  <script>
-    document.getElementById("horizontalSlider").value = STATE;
-    console.log("state is: " + STATE);
+  <p>Horizontal Servo<strong id="horizontalLabel"> %HORIZONTAL%</strong></p>
+  <input type="range" min="0" max="180" class="slider" id="horizontalSlider" value="%HORIZONTAL%" onchange="servo(this.value, 'horizontal')"/>
+  <p>Vertical Servo<strong id="verticalLabel"> %VERTICAL%</strong></p>
+  <input type="range" min="0" max="180" class="slider" id="verticalSlider" value="%VERTICAL%" onchange="servo(this.value,'vertical')"/>
+  <p>Tilt Servo<strong id="tiltLabel"> %TILT%</strong></p>
+  <input type="range" min="0" max="180" class="slider" id="tiltSlider" value="%TILT%" onchange="servo(this.value,'tilt')"/>
+  <p>Select Modes - Current mode: <strong id="currentMode">%MODE%</strong></p>
+  <button onclick="changeMode(0)">Unset</button>
+  <button onclick="changeMode(1)">Website</button>
+  <button onclick="changeMode(2)">Joystick</button>
+  <button onclick="changeMode(3)">Gyro</button>
 
-    $.ajaxSetup({timeout:1000});
-    function servo(pos) {
-      $.get("/horizontal?value=" + pos + "&");
-      {Connection: close};
+  <script>
+    var socket = null;
+
+    function loadSocket(){
+      socket = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+      socket.binaryType = "arraybuffer";
+
+      socket.onopen = function(e){
+        console.log("connected");
+      };
+      socket.onclose = function(e){
+        console.log("disconnected");
+      };
+      socket.onerror = function(e){
+        console.log("socket error", e);
+      };
+      socket.onmessage = function(e){
+        console.log("incoming message");
+        var msg = JSON.parse(e.data);
+
+        if(msg["event"] == "horizontal"){
+          document.getElementById("horizontalSlider").value = msg["value"];
+          document.getElementById("horizontalLabel").innerText = msg["value"];
+        }else if(msg["event"] == "vertical"){
+          document.getElementById("verticalSlider").value = msg["value"];
+          document.getElementById("verticalLabel").innerText = msg["value"];
+        }else if(msg["event"] == "tilt"){
+          document.getElementById("tiltSlider").value = msg["value"];
+          document.getElementById("tiltLabel").innerText = msg["value"];
+        }else if(msg["event"] == "mode"){
+          document.getElementById("currentMode").innerText = msg["value"];
+        }
+        
+      };
     }
 
+
+    function servo(pos,type) {
+      var message = {
+        "event" : type,
+        "value" : pos
+      }
+      if(type == "horizontal"){
+          document.getElementById("horizontalLabel").innerText = pos;
+        }else if(type == "vertical"){
+          document.getElementById("verticalLabel").innerText = pos;
+        }else if(type == "tilt"){
+          document.getElementById("tiltLabel").innerText = pos;
+        }
+      console.log(message);
+      socket.send(JSON.stringify(message));
+    }
+
+    function changeMode(mode) {
+      var message = {
+        "event" : "mode",
+        "value" : mode
+      }
+      socket.send(JSON.stringify(message));
+      let value = "";
+      switch(mode){
+        case 0: value = "Unset Mode"; break;
+        case 1: value = "Web Mode"; break;
+        case 2: value = "Joystick Mode"; break;
+        case 3: value = "Gyro Mode"; break;
+      }
+      document.getElementById("currentMode").innerText = value;
+    }
+
+    function onBodyLoad(){
+      loadSocket();
+     
+    }
   </script>
 </body>
 </html>

@@ -65,7 +65,7 @@ float euler[3];
 float hvt[3];
 volatile bool mpuInterrupt = false;
 
-ICACHE_RAM_ATTR void dmpDataReady(){
+IRAM_ATTR void dmpDataReady(){
   mpuInterrupt = true;
 }
 
@@ -149,19 +149,16 @@ void onSocketMessage(void *arg, uint8_t *data, size_t len) {
             controlMode = socketMode;
             changeState(HorizontalUpdate, false); 
             updateServos(false);
-            Serial.println("event value: " + obj["value"].as<String>() + " : " + horizontalString);
           }else if(obj["event"].as<String>() == "vertical"){
             verticalString = obj["value"].as<String>();
             controlMode = socketMode;
             changeState(VerticalUpdate, false); 
             updateServos(false);
-            Serial.println("event value: " + obj["value"].as<String>() + " : " + verticalString);
           }else if(obj["event"].as<String>() == "tilt"){
             tiltString = obj["value"].as<String>();
             controlMode = socketMode;
             changeState(TiltUpdate, false); 
             updateServos(false);
-            Serial.println("event value: " + obj["value"].as<String>() + " : " + tiltString);
           }else if(obj["event"].as<String>() == "mode"){
             switch(obj["value"].as<int>()){
               case 0: 
@@ -180,9 +177,6 @@ void onSocketMessage(void *arg, uint8_t *data, size_t len) {
                 controlMode = unsetMode;
                 break;
             }
-            Serial.print("Mode is: ");
-            Serial.print("controlMode");
-            Serial.println("");
 
           }
         }
@@ -337,7 +331,7 @@ void loop(){
   
   if(joyStickMode || controlMode == joystickMode){
     currentTime = millis();
-    if((currentTime - joystickActive) >= 15000 && controlMode != joyStickMode){
+    if((currentTime - joystickActive) >= 15000 || controlMode != joyStickMode){
       Serial.println("Joystick timer end");
       joyStickMode = false;
     }else{
@@ -367,7 +361,7 @@ void loop(){
     
   }else{
     // checks for gyro updates if mode is unset or in gyro mode
-    if((dmpReady && controlMode == gyroMode) || dmpReady && controlMode == unsetMode){
+    if((dmpReady && controlMode == gyroMode) || (dmpReady && controlMode == unsetMode)){
 
       while(!mpuInterrupt && fifoCount < packetSize){
         if(mpuInterrupt && fifoCount < packetSize){

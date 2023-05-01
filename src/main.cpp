@@ -36,7 +36,7 @@ AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 String horizontalString = String(0);
-String verticalString = String(0);
+String verticalString = String(180);
 String tiltString = String(0);
 
 Servo horizontal, vertical, tilt;
@@ -331,11 +331,11 @@ void loop(){
   
   if(joyStickMode || controlMode == joystickMode){
     currentTime = millis();
-    if((currentTime - joystickActive) >= 15000 || controlMode != joyStickMode){
+    if((currentTime - joystickActive) >= 15000 && controlMode != joystickMode){
       Serial.println("Joystick timer end");
       joyStickMode = false;
     }else{
-      joystick = analogReader(LOW,LOW,LOW);
+      joystick = analogReader(HIGH,LOW,LOW);
       joystick = map (joystick, 0,1023,0,180);
       horizontalString = joystick;
       horizontal.write(horizontalString.toInt());
@@ -346,7 +346,8 @@ void loop(){
       Serial.print(horizontalString.toInt());
       Serial.println("");
       
-      joystick = analogReader(HIGH,LOW,LOW);
+      
+      joystick = analogReader(LOW,LOW,LOW);
       joystick = map(joystick, 0,1023,0,180);
       verticalString = joystick;
       changeState(VerticalUpdate, false);

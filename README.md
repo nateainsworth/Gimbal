@@ -58,3 +58,23 @@ Controls the gimbal from the gyro attempting to keep the gimbal as stable as it 
 
 
 # References
+
+Geißler, F. (2020, June 10). Access of outer environment variable in Platformio. Stack Overflow. Retrieved from https://stackoverflow.com/questions/62314497/access-of-outer-environment-variable-in-platformio 
+
+randomnerdtutorials. (2023, March 11). Getting started with the freenove ESP32-wrover cam board. Random Nerd Tutorials. Retrieved from https://randomnerdtutorials.com/getting-started-freenove-esp32-wrover-cam/ 
+
+Maker 101. (2016, December 15). Multiple servo motor control with joystick and Arduino. YouTube. Retrieved from https://www.youtube.com/watch?v=kA_pbMR6jVs 
+
+RandomNerdTutorials, S. (2019, April 2). ESP32 servo motor web server with Arduino Ide. Random Nerd Tutorials. Retrieved from https://randomnerdtutorials.com/esp32-servo-motor-web-server-arduino-ide/ 
+
+RandomNerdTutorials. (2019, August 22). ESP32 web server using SPIFFS (SPI flash file system). Random Nerd Tutorials. Retrieved from https://randomnerdtutorials.com/esp32-web-server-spiffs-spi-flash-file-system/ 
+
+RandomNerdTutorials. (2020, December 23). Esp8266 vs Code Platformio: Upload files to filesystem littlefs. Random Nerd Tutorials. Retrieved from https://randomnerdtutorials.com/esp8266-nodemcu-vs-code-platformio-littlefs/ 
+
+Solarduino. (2020, June 15). Add or increase analog pins for NODEMCU or Arduino using 16 channel analog multiplexer module. YouTube. Retrieved from https://www.youtube.com/watch?v=We_kBjiUkXU&amp;ab_channel=Solarduino 
+
+Gonzaloee, & Amorphous. (2019, July 7). Error ISR not in Iram! Blynk Community. Retrieved April 26, 2023, from https://community.blynk.cc/t/error-isr-not-in-iram/37426/16 
+
+TheoL. (2021, October 9). My wemos D1 mini adventures - interrupts on pins D3 and D4. MySensors Forum. Retrieved from https://forum.mysensors.org/topic/11822/my-wemos-d1-mini-adventures-interrupts-on-pins-d3-and-d4 
+
+Rowberg, J. (2023, February). jrowberg/I2Cdevlib-MPU6050. Platformio registry. Retrieved from https://registry.platformio.org/libraries/jrowberg/I2Cdevlib-MPU6050 

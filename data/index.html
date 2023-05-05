@@ -20,7 +20,12 @@
   <button onclick="changeMode(1)">Website</button>
   <button onclick="changeMode(2)">Joystick</button>
   <button onclick="changeMode(3)">Gyro</button>
-
+  <p>Tilt calib<strong id="tcalibLabel"> %TILTCALIB%</strong></p>
+  <input type="range" min="-180" max="180" class="slider" value="%TILTCALIB%" onchange="calib('tiltcalib',this.value)"/>
+  <p>Vertical Calib<strong id="vcalibLabel"> %VERTICALCALIB%</strong></p>
+  <input type="range" min="-180" max="180" class="slider" value="%VERTICALCALIB%" onchange="calib('verticalcalib',this.value)"/>
+  <p>Horizontal Calib<strong id="hcalibLabel"> %HORIZONTALCALIB%</strong></p>
+  <input type="range" min="-180" max="180" class="slider" value="%HORIZONTALCALIB%" onchange="calib('horizontalcalib',this.value)"/>
   <script>
     var socket = null;
 
@@ -46,7 +51,6 @@
           document.getElementById("horizontalLabel").innerText = msg["value"];
         }else if(msg["event"] == "vertical"){
           document.getElementById("verticalSlider").value = msg["value"];
-          document.getElementById("verticalLabel").innerText = msg["value"];
         }else if(msg["event"] == "tilt"){
           document.getElementById("tiltSlider").value = msg["value"];
           document.getElementById("tiltLabel").innerText = msg["value"];
@@ -88,6 +92,22 @@
         case 3: value = "Gyro Mode"; break;
       }
       document.getElementById("currentMode").innerText = value;
+    }
+
+    function calib(type,value){
+      var message = {
+        "event" : type,
+        "value" : value
+      }
+      if(type == 'tiltcalib'){
+        document.getElementById("tcalibLabel").innerText = value;
+      }else if(type == 'verticalcalib'){
+        document.getElementById("vcalibLabel").innerText = value;
+      }else if(type == 'horizontalcalib'){
+        document.getElementById("hcalibLabel").innerText = value;
+      }
+
+      socket.send(JSON.stringify(message));
     }
 
     function onBodyLoad(){

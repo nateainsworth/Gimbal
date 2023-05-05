@@ -39,6 +39,10 @@ String horizontalString = String(0);
 String verticalString = String(180);
 String tiltString = String(0);
 
+int horizontalCalib = -180;
+int verticalCalib = 19;
+int tiltCalib = 0;
+
 Servo horizontal, vertical, tilt;
 
 int joystick;
@@ -47,7 +51,7 @@ int joystickState = 1;
 bool joyStickMode = false;
 
 MPU6050 mpu;
-float correction;
+float hcorrection,vcorrection,tcorrection;
 int lnum = 0 ;
 bool dmpReady = false;
 uint8_t mpuIntStatus;
@@ -178,7 +182,14 @@ void onSocketMessage(void *arg, uint8_t *data, size_t len) {
                 break;
             }
 
+          }else if(obj["event"].as<String>() == "tiltcalib"){
+            tiltCalib = obj["value"].as<int>();
+          }else if(obj["event"].as<String>() == "horizontalcalib"){
+            horizontalCalib = obj["value"].as<int>();
+          }else if(obj["event"].as<String>() == "verticalcalib"){
+            verticalCalib = obj["value"].as<int>();
           }
+
         }
     }
 }
@@ -228,13 +239,20 @@ String processor(const String& var){
       case 2: return "Joystick Mode"; break;
       case 3: return "Gyro Mode"; break;
     }
+  }else if(var == "TILTCALIB"){
+    return String(tiltCalib);
+  }else if(var == "VERTICALCALIB"){
+    return String(verticalCalib);
+  }else if(var == "HORIZONTALCALIB"){
+    return String(horizontalCalib);
   }
+
   return String();
 }
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(38400);//115200);
 
   //Joystick setup
   pinMode(joystickSwitch, INPUT);
@@ -254,10 +272,10 @@ void setup() {
   mpu.initialize();
   pinMode( RX, INPUT);
   initStatus = mpu.dmpInitialize();
-  mpu.setXGyroOffset(0);
-  mpu.setYGyroOffset(0);//49
-  mpu.setZGyroOffset(0);//36
-  mpu.setZAccelOffset(1688);
+  mpu.setXGyroOffset(20);
+  mpu.setYGyroOffset(-70);
+  mpu.setZGyroOffset(30);
+  mpu.setZAccelOffset(1551);//or 1688 for calibration
 
   if(initStatus == 0){
     Serial.println("initialized MPU");
@@ -271,16 +289,8 @@ void setup() {
     Serial.println("Failed to the initialize MPU");
   }
 
-
   // Website setup
   LittleFS.begin();
-
-  /*
-  TODO FIND AN ALTERNATIVE FOR ERROR REPORTING IN LITTLEFS after changing from SPIFF
-  if(!LittleFS.begin(true)){
-    Serial.println("LittleFs Failed to mount");
-    return;
-  }*/
 
   WiFi.mode(WIFI_AP_STA);
   WiFi.hostname("Gimbal");
@@ -390,36 +400,49 @@ void loop(){
       mpu.dmpGetYawPitchRoll(hvt, &q,&gravity);
 
       hvt[0] = hvt[0] * 180 / M_PI;
-      hvt[1] = hvt[1] * 180 / M_PI;
       hvt[2] = hvt[2] * 180 / M_PI;
+      hvt[1] = hvt[1] * 180 / M_PI;
 
-      if(lnum <= 250){
-        correction = hvt[0];
+
+/* 
+      #broken gyro calibration for vertical
+      hvt[0] = (hvt[0] * 180 / M_PI) + horizontalCalib; // horizontal
+      hvt[2] = (hvt[2] * 360 / M_PI) + verticalCalib; // vertical
+      hvt[1] = (hvt[1] * 180 / M_PI) + tiltCalib;//- 40; // tilt
+      */
+
+      // first time initialization it is calibrating and sets horizontal to 0
+      if(lnum <= 300){
+        hcorrection = hvt[0];
+        vcorrection = hvt[2];
+        tcorrection = hvt[1];
         lnum++;
       }else{
-        lnum =0;
+        // setup correction.
+        float correctedH = hcorrection - hvt[0] + horizontalCalib;
+        float correctedV = vcorrection - hvt[2] + verticalCalib;
+        float correctedT = tcorrection - hvt[1] + tiltCalib;
 
-        float corrected = correction -  hvt[0];
-      /* Serial.print("correction");
-        Serial.print(correction);
-        Serial.print(" : ");
-        Serial.print(corrected);
-        Serial.println("");
-        */
+        horizontalString = map(correctedH, -90, 90, 0, 180);
+        if( horizontalString.toInt() < 180 && horizontalString.toInt() > 0){
+          changeState(HorizontalUpdate, false);
+          updateServos(false);
+        }
 
-        horizontalString = map(corrected, -90, 90, 0, 180);
-        changeState(HorizontalUpdate, false);
-        updateServos(false);
+        verticalString = map(correctedV, -90, 90, 180, 0);
+        if( verticalString.toInt() < 180 && verticalString.toInt() > 0){
+          changeState(VerticalUpdate, false);
+          updateServos(false);
+        }
 
-        verticalString = map(hvt[1], -90, 90, 0, 180);
-        changeState(VerticalUpdate, false);
-        updateServos(false);
+        tiltString = map(correctedT, -90, 90, 180, 0);
+        if( tiltString.toInt() < 180 && tiltString.toInt() > 0){
+          changeState(TiltUpdate, false);
+          updateServos(false);
+        }
 
-        tiltString = map(hvt[2], -90, 90, 0, 180);
-        changeState(TiltUpdate, false);
-        updateServos(false);
 
-        //Serial.print("H: " + horizontalString + " V: " + verticalString + " T: " + tiltString);
+        Serial.println("H: " + horizontalString + " V: " + verticalString + " T: " + tiltString);
 
       }
 
